@@ -19,8 +19,9 @@ export function MyReservationsPage() {
     queryFn: () => reservationsApi.getMy(role, statusFilter || undefined),
   })
 
-  const cancelMutation = useMutation({
-    mutationFn: (id: number) => reservationsApi.updateStatus(id, 'CANCELLED'),
+  const statusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: ReservationStatus }) =>
+      reservationsApi.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-reservations'] })
     },
@@ -55,9 +56,9 @@ export function MyReservationsPage() {
       {isError && <p className="text-sm text-red-600">예약 목록을 불러오지 못했습니다.</p>}
       {data && data.length === 0 && <p className="text-sm text-gray-500">예약 내역이 없습니다.</p>}
 
-      {cancelMutation.isError && (
+      {statusMutation.isError && (
         <p className="mb-4 text-sm text-red-600">
-          {getApiErrorMessage(cancelMutation.error, '취소에 실패했습니다.')}
+          {getApiErrorMessage(statusMutation.error, '처리에 실패했습니다.')}
         </p>
       )}
 
@@ -76,21 +77,68 @@ export function MyReservationsPage() {
               </div>
               <ReservationStatusBadge status={reservation.status} />
             </div>
-            {(reservation.status === 'PENDING' || reservation.status === 'CONFIRMED') && (
-              <div className="mt-3">
-                <button
-                  type="button"
-                  disabled={cancelMutation.isPending}
-                  onClick={() => cancelMutation.mutate(reservation.id)}
-                  className="text-xs text-red-600 hover:underline disabled:opacity-50"
-                >
-                  예약 취소
-                </button>
-              </div>
-            )}
+
+            <ReservationActions
+              role={role}
+              status={reservation.status}
+              disabled={statusMutation.isPending}
+              onChangeStatus={(status) => statusMutation.mutate({ id: reservation.id, status })}
+            />
           </li>
         ))}
       </ul>
     </div>
   )
+}
+
+function ReservationActions({
+  role,
+  status,
+  disabled,
+  onChangeStatus,
+}: {
+  role: 'STUDENT' | 'TUTOR'
+  status: ReservationStatus
+  disabled: boolean
+  onChangeStatus: (status: ReservationStatus) => void
+}) {
+  const buttonClass = 'text-xs font-medium hover:underline disabled:opacity-50'
+
+  if (role === 'TUTOR' && status === 'PENDING') {
+    return (
+      <div className="mt-3 flex gap-4">
+        <button type="button" disabled={disabled} onClick={() => onChangeStatus('CONFIRMED')} className={`${buttonClass} text-blue-600`}>
+          승인
+        </button>
+        <button type="button" disabled={disabled} onClick={() => onChangeStatus('REJECTED')} className={`${buttonClass} text-red-600`}>
+          거절
+        </button>
+      </div>
+    )
+  }
+
+  if (role === 'TUTOR' && status === 'CONFIRMED') {
+    return (
+      <div className="mt-3 flex gap-4">
+        <button type="button" disabled={disabled} onClick={() => onChangeStatus('COMPLETED')} className={`${buttonClass} text-green-600`}>
+          완료 처리
+        </button>
+        <button type="button" disabled={disabled} onClick={() => onChangeStatus('CANCELLED')} className={`${buttonClass} text-red-600`}>
+          예약 취소
+        </button>
+      </div>
+    )
+  }
+
+  if (role === 'STUDENT' && (status === 'PENDING' || status === 'CONFIRMED')) {
+    return (
+      <div className="mt-3">
+        <button type="button" disabled={disabled} onClick={() => onChangeStatus('CANCELLED')} className={`${buttonClass} text-red-600`}>
+          예약 취소
+        </button>
+      </div>
+    )
+  }
+
+  return null
 }
