@@ -6,6 +6,7 @@ import { availabilityApi } from '../api/availability'
 import { getApiErrorMessage } from '../api/error'
 import { Spinner } from '../components/Spinner'
 import { cardClass, inputClass, labelClass, primaryButtonClass } from '../styles/ui'
+import { SUBJECTS } from '../constants/subjects'
 
 function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10)
@@ -67,7 +68,22 @@ export function TutorProfileFormPage() {
             <label htmlFor="subject" className={labelClass}>
               과목
             </label>
-            <input id="subject" required value={subject} onChange={(e) => setSubject(e.target.value)} className={inputClass} />
+            <select
+              id="subject"
+              required
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className={inputClass}
+            >
+              <option value="" disabled>
+                과목을 선택하세요
+              </option>
+              {SUBJECTS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label htmlFor="hourlyRate" className={labelClass}>

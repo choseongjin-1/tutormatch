@@ -5,6 +5,7 @@ import { tutorsApi } from '../api/tutors'
 import { TutorCard } from '../components/TutorCard'
 import { Spinner } from '../components/Spinner'
 import { inputClass, labelClass, primaryButtonClass } from '../styles/ui'
+import { SUBJECTS } from '../constants/subjects'
 
 export function TutorListPage() {
   const [subject, setSubject] = useState('')
@@ -44,13 +45,14 @@ export function TutorListPage() {
           <label htmlFor="subject" className={labelClass}>
             과목
           </label>
-          <input
-            id="subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder="예: 수학"
-            className={inputClass}
-          />
+          <select id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} className={inputClass}>
+            <option value="">전체 과목</option>
+            {SUBJECTS.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label htmlFor="minPrice" className={labelClass}>
