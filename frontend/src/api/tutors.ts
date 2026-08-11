@@ -20,6 +20,7 @@ export const tutorsApi = {
   search: (params: TutorSearchParams) =>
     apiClient.get<Page<TutorProfile>>('/tutors', { params }).then((res) => res.data),
   getDetail: (tutorId: number) => apiClient.get<TutorProfile>(`/tutors/${tutorId}`).then((res) => res.data),
+  getMyProfile: () => apiClient.get<TutorProfile>('/tutors/me').then((res) => res.data),
   createProfile: (payload: TutorProfilePayload) =>
     apiClient.post<TutorProfile>('/tutors/profile', payload).then((res) => res.data),
   updateProfile: (payload: TutorProfilePayload) =>

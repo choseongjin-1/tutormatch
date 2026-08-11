@@ -43,6 +43,12 @@ public class TutorController {
         return ResponseEntity.ok(tutorService.getDetail(tutorId));
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('TUTOR')")
+    public ResponseEntity<TutorProfileResponse> getMyProfile(@AuthenticationPrincipal CustomUserDetails principal) {
+        return ResponseEntity.ok(tutorService.getMyProfile(principal.getUserId()));
+    }
+
     @PostMapping("/profile")
     @PreAuthorize("hasRole('TUTOR')")
     public ResponseEntity<TutorProfileResponse> createProfile(

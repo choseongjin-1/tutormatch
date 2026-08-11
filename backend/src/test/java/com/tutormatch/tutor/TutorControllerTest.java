@@ -74,4 +74,23 @@ class TutorControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void getMyProfileReturns404BeforeCreationAndProfileAfter() throws Exception {
+        mockMvc.perform(get("/api/tutors/me")
+                        .with(user(new com.tutormatch.auth.CustomUserDetails(tutorUser))))
+                .andExpect(status().isNotFound());
+
+        TutorProfileRequest request = new TutorProfileRequest("Physics", "bio", 25000, "career");
+        mockMvc.perform(post("/api/tutors/profile")
+                        .with(user(new com.tutormatch.auth.CustomUserDetails(tutorUser)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/tutors/me")
+                        .with(user(new com.tutormatch.auth.CustomUserDetails(tutorUser))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.subject").value("Physics"));
+    }
 }

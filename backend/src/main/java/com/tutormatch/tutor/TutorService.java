@@ -30,6 +30,12 @@ public class TutorService {
         return TutorProfileResponse.from(getProfileOrThrow(tutorId));
     }
 
+    public TutorProfileResponse getMyProfile(Long userId) {
+        TutorProfile profile = tutorProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TUTOR_PROFILE_NOT_FOUND));
+        return TutorProfileResponse.from(profile);
+    }
+
     @Transactional
     public TutorProfileResponse createProfile(Long userId, TutorProfileRequest request) {
         User user = userRepository.findById(userId)
