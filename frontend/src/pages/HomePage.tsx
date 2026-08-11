@@ -3,5 +3,5 @@ import { useAuthStore } from '../store/authStore'
 
 export function HomePage() {
   const user = useAuthStore((state) => state.user)
-  return <Navigate to={user ? '/tutors' : '/signup'} replace />
+  return <Navigate to={user ? '/tutors' : '/login'} replace />
 }
