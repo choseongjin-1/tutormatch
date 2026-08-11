@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd frontend && npm run dev -- --host"],
+      "port": 5173
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd backend && ./gradlew bootRun"],
+      "port": 8080
+    }
+  ]
+}

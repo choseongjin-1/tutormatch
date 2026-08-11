@@ -129,9 +129,10 @@ erDiagram
 
 ## 4. 기술 스택
 
-**Frontend**: React 18 + TypeScript, Vite, React Router, React Query, Zustand(인증 상태), Axios(JWT interceptor), Tailwind CSS
+**Frontend**: React 19 + TypeScript, Vite, React Router, React Query, Zustand(인증 상태), Axios(JWT interceptor), Tailwind CSS 4
+(설계 당시 React 18을 명시했으나, 구현 시점 기준 Vite 스캐폴딩 기본값이 React 19라 최신 버전으로 진행)
 
-**Backend**: Spring Boot 3.x, Spring Security + JWT(jjwt), Spring Data JPA, Bean Validation, Gradle
+**Backend**: Spring Boot 4.1(설계 당시 3.x를 명시했으나 Initializr가 3.x 지원을 종료해 최신으로 진행), Spring Security + JWT(jjwt), Spring Data JPA, Bean Validation, Gradle
 
 **DB**: 개발 H2 / 운영 MySQL 8
 
