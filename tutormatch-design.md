@@ -82,6 +82,7 @@ erDiagram
 **제약조건**
 - `availability_slots`: `(tutor_id, slot_date, start_time)` UNIQUE — 같은 튜터가 같은 시간대 슬롯 중복 등록 방지
 - `reservations`: `slot_id` UNIQUE — 슬롯당 예약 1건만 허용, DB 레벨에서 이중 예약 차단
+  - 이 제약으로 인해 슬롯은 1회성 소모 자원이다: 예약이 REJECTED/CANCELLED로 바뀌어도 해당 슬롯은 재예약 대상에서 제외된다(같은 slot_id로 새 예약 row 생성 불가). 튜터가 같은 시간대를 다시 열고 싶다면 새 슬롯을 등록해야 한다.
 
 **동시성 처리**
 두 학생이 동시에 같은 슬롯을 예약 시도하는 race condition은 (1) `slot_id` UNIQUE 제약과 (2) 예약 생성 트랜잭션 내 슬롯 조회 시 `PESSIMISTIC_WRITE` 락으로 이중 방어한다. 이력서에서 "동시성 이슈 해결 경험"으로 설명할 수 있는 핵심 포인트.

@@ -61,8 +61,4 @@ public class AvailabilitySlot extends BaseCreatedAtEntity {
     public void markBooked() {
         this.booked = true;
     }
-
-    public void markUnbooked() {
-        this.booked = false;
-    }
 }
