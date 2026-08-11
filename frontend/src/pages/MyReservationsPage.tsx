@@ -5,8 +5,18 @@ import { reservationsApi } from '../api/reservations'
 import { reviewsApi } from '../api/reviews'
 import { useAuthStore } from '../store/authStore'
 import { ReservationStatusBadge } from '../components/ReservationStatusBadge'
+import { Spinner } from '../components/Spinner'
 import { getApiErrorMessage } from '../api/error'
+import { cardClass, inputClass, primaryButtonClass } from '../styles/ui'
 import type { ReservationStatus } from '../types'
+
+const STATUS_LABELS: Record<ReservationStatus, string> = {
+  PENDING: '대기중',
+  CONFIRMED: '확정',
+  REJECTED: '거절됨',
+  CANCELLED: '취소됨',
+  COMPLETED: '완료',
+}
 
 const STATUS_OPTIONS: ReservationStatus[] = ['PENDING', 'CONFIRMED', 'REJECTED', 'CANCELLED', 'COMPLETED']
 
@@ -33,32 +43,34 @@ export function MyReservationsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-6 text-2xl font-semibold text-gray-900">
-        내 예약 {role === 'TUTOR' ? '(튜터)' : '(학생)'}
-      </h1>
+      <h1 className="text-2xl font-bold text-slate-900">내 예약 {role === 'TUTOR' ? '(선생님)' : '(학생)'}</h1>
+      <p className="mt-1 text-sm text-slate-500">
+        {role === 'TUTOR' ? '학생들의 예약 요청을 확인하고 처리하세요.' : '신청한 과외 예약 현황을 확인하세요.'}
+      </p>
 
-      <div className="mb-6">
-        <label htmlFor="status" className="mb-1 block text-sm font-medium text-gray-700">
-          상태 필터
-        </label>
+      <div className="mt-6 mb-4">
         <select
           id="status"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as ReservationStatus | '')}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+          className={`w-auto ${inputClass}`}
         >
-          <option value="">전체</option>
+          <option value="">전체 상태</option>
           {STATUS_OPTIONS.map((status) => (
             <option key={status} value={status}>
-              {status}
+              {STATUS_LABELS[status]}
             </option>
           ))}
         </select>
       </div>
 
-      {isLoading && <p className="text-sm text-gray-500">불러오는 중...</p>}
+      {isLoading && <Spinner />}
       {isError && <p className="text-sm text-red-600">예약 목록을 불러오지 못했습니다.</p>}
-      {data && data.length === 0 && <p className="text-sm text-gray-500">예약 내역이 없습니다.</p>}
+      {data && data.length === 0 && (
+        <p className="rounded-xl border border-dashed border-slate-300 py-10 text-center text-sm text-slate-500">
+          예약 내역이 없습니다.
+        </p>
+      )}
 
       {statusMutation.isError && (
         <p className="mb-4 text-sm text-red-600">
@@ -68,16 +80,16 @@ export function MyReservationsPage() {
 
       <ul className="flex flex-col gap-3">
         {data?.map((reservation) => (
-          <li key={reservation.id} className="rounded-lg border border-gray-200 bg-white p-4">
+          <li key={reservation.id} className={cardClass}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-gray-900">
-                  {role === 'TUTOR' ? reservation.studentName : reservation.tutorName}
+                <p className="text-sm font-semibold text-slate-900">
+                  {role === 'TUTOR' ? reservation.studentName : `${reservation.tutorName} 선생님`}
                 </p>
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-slate-600">
                   {reservation.slotDate} {reservation.startTime.slice(0, 5)}-{reservation.endTime.slice(0, 5)}
                 </p>
-                {reservation.message && <p className="mt-2 text-sm text-gray-700">{reservation.message}</p>}
+                {reservation.message && <p className="mt-2 text-sm text-slate-700">{reservation.message}</p>}
               </div>
               <ReservationStatusBadge status={reservation.status} />
             </div>
@@ -96,7 +108,7 @@ export function MyReservationsPage() {
               />
             )}
             {role === 'STUDENT' && reservation.status === 'COMPLETED' && reviewedIds.has(reservation.id) && (
-              <p className="mt-3 text-xs text-gray-500">리뷰를 작성했습니다.</p>
+              <p className="mt-3 text-xs text-slate-500">리뷰를 작성했습니다.</p>
             )}
           </li>
         ))}
@@ -116,12 +128,12 @@ function ReservationActions({
   disabled: boolean
   onChangeStatus: (status: ReservationStatus) => void
 }) {
-  const buttonClass = 'text-xs font-medium hover:underline disabled:opacity-50'
+  const buttonClass = 'text-xs font-semibold hover:underline disabled:opacity-50'
 
   if (role === 'TUTOR' && status === 'PENDING') {
     return (
-      <div className="mt-3 flex gap-4">
-        <button type="button" disabled={disabled} onClick={() => onChangeStatus('CONFIRMED')} className={`${buttonClass} text-blue-600`}>
+      <div className="mt-3 flex gap-4 border-t border-slate-100 pt-3">
+        <button type="button" disabled={disabled} onClick={() => onChangeStatus('CONFIRMED')} className={`${buttonClass} text-indigo-600`}>
           승인
         </button>
         <button type="button" disabled={disabled} onClick={() => onChangeStatus('REJECTED')} className={`${buttonClass} text-red-600`}>
@@ -133,8 +145,8 @@ function ReservationActions({
 
   if (role === 'TUTOR' && status === 'CONFIRMED') {
     return (
-      <div className="mt-3 flex gap-4">
-        <button type="button" disabled={disabled} onClick={() => onChangeStatus('COMPLETED')} className={`${buttonClass} text-green-600`}>
+      <div className="mt-3 flex gap-4 border-t border-slate-100 pt-3">
+        <button type="button" disabled={disabled} onClick={() => onChangeStatus('COMPLETED')} className={`${buttonClass} text-emerald-600`}>
           완료 처리
         </button>
         <button type="button" disabled={disabled} onClick={() => onChangeStatus('CANCELLED')} className={`${buttonClass} text-red-600`}>
@@ -146,7 +158,7 @@ function ReservationActions({
 
   if (role === 'STUDENT' && (status === 'PENDING' || status === 'CONFIRMED')) {
     return (
-      <div className="mt-3">
+      <div className="mt-3 border-t border-slate-100 pt-3">
         <button type="button" disabled={disabled} onClick={() => onChangeStatus('CANCELLED')} className={`${buttonClass} text-red-600`}>
           예약 취소
         </button>
@@ -177,15 +189,15 @@ function ReviewForm({ reservationId, onSubmitted }: { reservationId: number; onS
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
-      <label htmlFor={`rating-${reservationId}`} className="mb-1 block text-xs font-medium text-gray-700">
+    <form onSubmit={handleSubmit} className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/50 p-3">
+      <label htmlFor={`rating-${reservationId}`} className="mb-1 block text-xs font-medium text-slate-700">
         별점
       </label>
       <select
         id={`rating-${reservationId}`}
         value={rating}
         onChange={(e) => setRating(Number(e.target.value))}
-        className="mb-2 rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-gray-500 focus:outline-none"
+        className="mb-2 rounded-lg border border-slate-300 px-2 py-1.5 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
       >
         {[5, 4, 3, 2, 1].map((value) => (
           <option key={value} value={value}>
@@ -198,16 +210,12 @@ function ReviewForm({ reservationId, onSubmitted }: { reservationId: number; onS
         placeholder="리뷰 내용 (선택)"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
       />
       {reviewMutation.isError && (
         <p className="mt-1 text-xs text-red-600">{getApiErrorMessage(reviewMutation.error, '리뷰 작성에 실패했습니다.')}</p>
       )}
-      <button
-        type="submit"
-        disabled={reviewMutation.isPending}
-        className="mt-2 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-      >
+      <button type="submit" disabled={reviewMutation.isPending} className={`${primaryButtonClass} mt-2 px-3 py-1.5 text-xs`}>
         {reviewMutation.isPending ? '제출 중...' : '리뷰 작성'}
       </button>
     </form>
