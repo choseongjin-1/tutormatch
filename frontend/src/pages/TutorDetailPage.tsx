@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { tutorsApi } from '../api/tutors'
 import { availabilityApi } from '../api/availability'
 import { reservationsApi } from '../api/reservations'
+import { reviewsApi } from '../api/reviews'
 import { useAuthStore } from '../store/authStore'
 import { getApiErrorMessage } from '../api/error'
 import type { AvailabilitySlot } from '../types'
@@ -32,6 +33,12 @@ export function TutorDetailPage() {
   const { data: slots } = useQuery({
     queryKey: ['availability', id, today, in30Days],
     queryFn: () => availabilityApi.getByTutor(id, today, in30Days),
+  })
+
+  const [reviewPage, setReviewPage] = useState(0)
+  const { data: reviews } = useQuery({
+    queryKey: ['reviews', id, reviewPage],
+    queryFn: () => reviewsApi.getByTutor(id, reviewPage),
   })
 
   const reserveMutation = useMutation({
@@ -133,6 +140,51 @@ export function TutorDetailPage() {
               </button>
             </div>
           </div>
+        )}
+      </div>
+
+      <div className="mt-6 rounded-lg border border-gray-200 bg-white p-6">
+        <h2 className="mb-3 text-sm font-semibold text-gray-900">리뷰 ({tutor.reviewCount})</h2>
+        {reviews && reviews.content.length === 0 && <p className="text-sm text-gray-500">아직 리뷰가 없습니다.</p>}
+        {reviews && reviews.content.length > 0 && (
+          <>
+            <ul className="flex flex-col gap-4">
+              {reviews.content.map((review) => (
+                <li key={review.id} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-900">
+                      ★ {review.rating} · {review.studentName}
+                    </p>
+                    <p className="text-xs text-gray-500">{review.createdAt.slice(0, 10)}</p>
+                  </div>
+                  {review.comment && <p className="mt-1 text-sm text-gray-700">{review.comment}</p>}
+                </li>
+              ))}
+            </ul>
+            {reviews.totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  disabled={reviewPage === 0}
+                  onClick={() => setReviewPage((p) => p - 1)}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 disabled:opacity-40"
+                >
+                  이전
+                </button>
+                <span className="text-sm text-gray-600">
+                  {reviews.number + 1} / {reviews.totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={reviews.number + 1 >= reviews.totalPages}
+                  onClick={() => setReviewPage((p) => p + 1)}
+                  className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 disabled:opacity-40"
+                >
+                  다음
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

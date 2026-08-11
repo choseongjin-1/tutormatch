@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { reservationsApi } from '../api/reservations'
+import { reviewsApi } from '../api/reviews'
 import { useAuthStore } from '../store/authStore'
 import { ReservationStatusBadge } from '../components/ReservationStatusBadge'
 import { getApiErrorMessage } from '../api/error'
@@ -26,6 +28,8 @@ export function MyReservationsPage() {
       queryClient.invalidateQueries({ queryKey: ['my-reservations'] })
     },
   })
+
+  const [reviewedIds, setReviewedIds] = useState<Set<number>>(new Set())
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -84,6 +88,16 @@ export function MyReservationsPage() {
               disabled={statusMutation.isPending}
               onChangeStatus={(status) => statusMutation.mutate({ id: reservation.id, status })}
             />
+
+            {role === 'STUDENT' && reservation.status === 'COMPLETED' && !reviewedIds.has(reservation.id) && (
+              <ReviewForm
+                reservationId={reservation.id}
+                onSubmitted={() => setReviewedIds((prev) => new Set(prev).add(reservation.id))}
+              />
+            )}
+            {role === 'STUDENT' && reservation.status === 'COMPLETED' && reviewedIds.has(reservation.id) && (
+              <p className="mt-3 text-xs text-gray-500">리뷰를 작성했습니다.</p>
+            )}
           </li>
         ))}
       </ul>
@@ -141,4 +155,61 @@ function ReservationActions({
   }
 
   return null
+}
+
+function ReviewForm({ reservationId, onSubmitted }: { reservationId: number; onSubmitted: () => void }) {
+  const [rating, setRating] = useState(5)
+  const [comment, setComment] = useState('')
+  const queryClient = useQueryClient()
+
+  const reviewMutation = useMutation({
+    mutationFn: () => reviewsApi.create(reservationId, { rating, comment: comment || undefined }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reviews'] })
+      queryClient.invalidateQueries({ queryKey: ['tutor'] })
+      onSubmitted()
+    },
+  })
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    reviewMutation.mutate()
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+      <label htmlFor={`rating-${reservationId}`} className="mb-1 block text-xs font-medium text-gray-700">
+        별점
+      </label>
+      <select
+        id={`rating-${reservationId}`}
+        value={rating}
+        onChange={(e) => setRating(Number(e.target.value))}
+        className="mb-2 rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-gray-500 focus:outline-none"
+      >
+        {[5, 4, 3, 2, 1].map((value) => (
+          <option key={value} value={value}>
+            {'★'.repeat(value)} ({value})
+          </option>
+        ))}
+      </select>
+      <textarea
+        rows={2}
+        placeholder="리뷰 내용 (선택)"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none"
+      />
+      {reviewMutation.isError && (
+        <p className="mt-1 text-xs text-red-600">{getApiErrorMessage(reviewMutation.error, '리뷰 작성에 실패했습니다.')}</p>
+      )}
+      <button
+        type="submit"
+        disabled={reviewMutation.isPending}
+        className="mt-2 rounded-md bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+      >
+        {reviewMutation.isPending ? '제출 중...' : '리뷰 작성'}
+      </button>
+    </form>
+  )
 }
