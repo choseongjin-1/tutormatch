@@ -31,7 +31,7 @@
 
 ### 백엔드 (`backend/`)
 
-기본 프로필은 `dev`이며, 별도 설정 없이 인메모리 H2 DB로 바로 실행됩니다.
+기본 프로필은 `dev`이며, 별도 설정 없이 H2 DB로 바로 실행됩니다.
 
 ```bash
 cd backend
@@ -39,7 +39,9 @@ cd backend
 ```
 
 - API 서버: http://localhost:8080
-- H2 콘솔: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:tutormatch`, 유저 `sa`, 비밀번호 없음)
+- API 문서(Swagger UI): http://localhost:8080/swagger-ui/index.html
+- H2 콘솔: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:file:./data/tutormatch`, 유저 `sa`, 비밀번호 없음)
+- 로컬 DB는 `backend/data/`에 파일로 저장되어 서버를 재시작해도 데이터가 유지됩니다 (`ddl-auto: update`). 데이터를 초기화하려면 `backend/data/` 폴더를 삭제하세요.
 
 테스트 실행 (동시 예약 락 통합 테스트 포함):
 
