@@ -7,9 +7,15 @@ import { useAuthStore } from '../store/authStore'
 import { getApiErrorMessage } from '../api/error'
 import { cardClass, inputClass, labelClass, primaryButtonClass } from '../styles/ui'
 
+// TEMP(dev only): pre-filled with a seeded local test account so the login form is
+// always click-through-able while demoing. Other seeded accounts: tutor@test.com /
+// tutor2@test.com (same password) — see the curl commands used to seed backend/data/.
+const DEV_TEST_EMAIL = 'student@test.com'
+const DEV_TEST_PASSWORD = 'password123'
+
 export function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState(DEV_TEST_EMAIL)
+  const [password, setPassword] = useState(DEV_TEST_PASSWORD)
   const setAuth = useAuthStore((state) => state.setAuth)
   const navigate = useNavigate()
   const location = useLocation()
